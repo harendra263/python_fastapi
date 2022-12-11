@@ -45,11 +45,11 @@ def update_post(id: str, post: schemas.UpdatePostSchema, db: Session = Depends(g
 
 @router.get('/{id}', response_model=schemas.PostResponse)
 def get_post(id: str, db: Session = Depends(get_db), user_id: str = Depends(require_user)):
-    post = db.query(models.Post).filter(models.Post.id == id).first()
-    if not post:
+    if post := db.query(models.Post).filter(models.Post.id == id).first():
+        return post
+    else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"No post with this id: {id} found")
-    return post
 
 
 @router.delete('/{id}')

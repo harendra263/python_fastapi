@@ -22,7 +22,6 @@ class Email:
         self.sender = 'Codevo <admin@admin.com>'
         self.email = email
         self.url = url
-        pass
 
     async def sendMail(self, subject, template):
         # Define the config
