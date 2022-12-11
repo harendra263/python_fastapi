@@ -23,8 +23,7 @@ async def create_user(payload: schemas.CreateUserSchema, request: Request, db: S
     # Check if user already exist
     user_query = db.query(models.User).filter(
         models.User.email == EmailStr(payload.email.lower()))
-    user = user_query.first()
-    if user:
+    if user := user_query.first():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail='Account already exist')
     # Compare password and passwordConfirm
@@ -111,12 +110,16 @@ def refresh_token(response: Response, request: Request, Authorize: AuthJWT = Dep
         if not user_id:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail='Could not refresh access token')
-        user = db.query(models.User).filter(models.User.id == user_id).first()
-        if not user:
+        if (
+            user := db.query(models.User)
+            .filter(models.User.id == user_id)
+            .first()
+        ):
+            access_token = Authorize.create_access_token(
+                subject=str(user.id), expires_time=timedelta(minutes=ACCESS_TOKEN_EXPIRES_IN))
+        else:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail='The user belonging to this token no logger exist')
-        access_token = Authorize.create_access_token(
-            subject=str(user.id), expires_time=timedelta(minutes=ACCESS_TOKEN_EXPIRES_IN))
     except Exception as e:
         error = e.__class__.__name__
         if error == 'MissingTokenError':
